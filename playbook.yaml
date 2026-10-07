@@ -1,0 +1,32 @@
+---
+- name: conf sur tout les postes
+  hosts: all
+  become: yes
+  tasks:
+    - name: instzll du service bind
+      apt:
+        name: bind9
+        state: present
+        update_cache: yes
+
+    - name: no password ssh
+      blockinfile:
+        path: /etc/ssh/sshd_config.d/ansible-security.conf
+        create: yes
+        block: |
+          Match User ansible
+              AllowUsers ansible@10.81.200.49
+              PasswordAuthentication no
+      notify: Redemarrer ssh
+
+    - name: verif service bind demarré et actif
+      service:
+        name: bind9
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Redemarrer ssh
+      service:
+        name: ssh
+        state: restarted

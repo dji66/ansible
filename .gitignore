@@ -1,0 +1,30 @@
+# Fichiers d'environnement et secrets génériques
+.env
+*.env
+*.secret
+# ==========================================
+# 2. DÉPENDANCES ET TÉLÉCHARGEMENTS
+# pour les rôles/collections Galaxy localement dans le projet,
+# ignore les dossiers téléchargés :
+roles/external/
+roles/geerlingguy.*/
+collections/ansible_collections/
+# ==========================================
+# 3. FICHIERS TEMPORAIRES & RUNTIME ANSIBLE
+# Fichiers de retry générés en cas d'échec d'un playbook
+*.retry
+# Logs Ansible locaux
+*.log
+ansible.log
+# Fichiers de fact cache locaux (ex: si le plugin JSON/YAML est utilisé)
+.ansible/
+*.fact_cache
+# ==========================================
+# 4. OS & ÉDITEURS DE CODE
+# Fichiers système
+.DS_Store
+Thumbs.db
+# VS Code / Vim
+.vscode/
+*.swp
+*~
