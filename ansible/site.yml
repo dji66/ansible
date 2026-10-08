@@ -1,0 +1,7 @@
+---
+- name: Configuration globale de l'infrastructure
+  hosts: targets
+  become: true
+  roles:
+    - security_dns
+    - admin_users

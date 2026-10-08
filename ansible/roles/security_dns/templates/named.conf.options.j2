@@ -1,0 +1,24 @@
+options {
+    directory "/var/cache/bind";
+
+    // Utilisation du DNS configuré sur l'hôte cible via ansible_dns.nameservers
+    forwarders {
+        {% if ansible_dns is defined and ansible_dns.nameservers is defined %}
+        {% for ns in ansible_dns.nameservers %}
+        {{ ns }};
+        {% endfor %}
+        {% else %}
+        8.8.8.8;
+        8.8.4.4;
+        {% endif %}
+    };
+
+    // Redirection unique forcée
+    forward only;
+
+    // Désactivation de DNSSEC
+    dnssec-validation no;
+
+    auth-nxdomain no;
+    listen-on { any; };
+};

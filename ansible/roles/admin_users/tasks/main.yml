@@ -1,0 +1,40 @@
+---
+- name: Générer un mot de passe aléatoire sécurisé
+  ansible.builtin.set_fact:
+    generated_admin_password: "{{ lookup('ansible.builtin.password', '/dev/null length=' ~ password_length ~ ' chars=ascii_letters,digits,hexdigest') }}"
+  no_log: true
+
+- name: Créer l'utilisateur d'administration
+  ansible.builtin.user:
+    name: "{{ admin_username }}"
+    password: "{{ generated_admin_password | password_hash('sha512') }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+
+- name: Donner les droits sudoer avec mot de passe à l'utilisateur
+  ansible.builtin.copy:
+    content: "{{ admin_username }} ALL=(ALL:ALL) ALL"
+    dest: "/etc/sudoers.d/{{ admin_username }}"
+    mode: '0440'
+    validate: 'visudo -cf %s'
+
+- name: Créer le répertoire .ssh pour l'administrateur
+  ansible.builtin.file:
+    path: "/home/{{ admin_username }}/.ssh"
+    state: directory
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: '0700'
+
+- name: Pousser la clé SSH publique préalablement vaultée / configurée
+  ansible.builtin.copy:
+    content: "{{ admin_ssh_pub_key }}"
+    dest: "/home/{{ admin_username }}/.ssh/authorized_keys"
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: '0600'
+
+- name: Afficher le mot de passe généré à la fin de l'exécution
+  ansible.builtin.debug:
+    msg: "Le mot de passe généré pour l'utilisateur '{{ admin_username }}' est : {{ generated_admin_password }}"

@@ -1,0 +1,3 @@
+---
+password_length: 12
+admin_ssh_pub_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGlFVvlxXoYMzQUUkd+lDC72LmUK3OZ4BVCcESUZ3S2U ansible@localhost.localdomain"

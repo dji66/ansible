@@ -4,8 +4,8 @@
   become: yes
   tasks:
     - name: instzll du service bind
-      apt:
-        name: bind9
+      dnf:
+        name: bind
         state: present
         update_cache: yes
 
@@ -21,9 +21,9 @@
 
     - name: verif service bind demarré et actif
       service:
-        name: bind9
-        state: started
-        enabled: yes
+       name: named
+       state: started
+       enabled: yes
 
   handlers:
     - name: Redemarrer ssh

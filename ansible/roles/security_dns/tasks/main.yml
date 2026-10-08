@@ -1,0 +1,55 @@
+---
+- name: Installer les paquets OpenSSH-server et BIND9
+  ansible.builtin.package:
+    name:
+      - openssh-server
+      - bind9
+    state: present
+
+- name: Sécuriser la configuration SSH (PermitRootLogin no)
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+  notify: Redémarrer SSH
+
+- name: Configurer BIND avec block/rescue pour le contrôle et le rollback
+  block:
+    - name: Déployer le fichier de configuration BIND via template Jinja2
+      ansible.builtin.template:
+        src: named.conf.options.j2
+        dest: /etc/bind/named.conf.options
+        owner: root
+        group: bind
+        mode: '0644'
+      notify: Redémarrer BIND
+
+    - name: Valider la syntaxe du fichier de configuration BIND
+      ansible.builtin.command: named-checkconf /etc/bind/named.conf.options
+      changed_when: false
+
+  rescue:
+    - name: Alerte en cas d'échec de la configuration BIND
+      ansible.builtin.debug:
+        msg:
+        text: "Erreur détectée dans la configuration BIND. Lancement du rollback..."
+
+    - name: Restauration (Rollback) vers une configuration de secours fonctionnelle
+      ansible.builtin.copy:
+        content: |
+          options {
+              directory "/var/cache/bind";
+              forwarders { 8.8.8.8; };
+              dnssec-validation no;
+              forward only;
+          };
+        dest: /etc/bind/named.conf.options
+        owner: root
+        group: bind
+        mode: '0644'
+      notify: Redémarrer BIND
+
+    - name: Échouer le playbook après un rollback réussi
+      ansible.builtin.fail:
+        msg: "La configuration BIND fournie était invalide. Un rollback a été appliqué."
